@@ -127,7 +127,9 @@ jobs:
           sed -i "s|\${CUSTOM_DOMAIN}|${CUSTOM_DOMAIN}|g" "$CONFIG_FILE"
           sed -i "s|\"\${DOMAIN}\"|${DOMAIN}|g" "$CONFIG_FILE"
           sed -i "s|\${ADMIN}|${ADMIN}|g" "$CONFIG_FILE"
-          sed -i "s|\${JWT_SECRET}|${JWT_SECRET}|g" "$CONFIG_FILE"
+          # JWT_SECRET is uploaded as a Wrangler Secret after the Worker deploy.
+          # Keep it out of wrangler.toml so Cloudflare does not expose it as a plain variable.
+          sed -i '/^jwt_secret = /d' "$CONFIG_FILE"
           sed -i "s|\${R2_BUCKET_NAME}|${R2_BUCKET_NAME}|g" "$CONFIG_FILE"
           sed -i "s|\${PROJECT_LINK}|${PROJECT_LINK}|g" "$CONFIG_FILE"
           sed -i "s|\${ANALYSIS_CACHE}|${ANALYSIS_CACHE}|g" "$CONFIG_FILE"
@@ -239,6 +241,10 @@ jobs:
           
           echo "worker_url=$WORKER_URL" >> $GITHUB_OUTPUT
           echo "✅ Setup completed."
+
+      - name: 🔐 写入 JWT Secret / Store JWT secret
+        working-directory: ./mail-worker
+        run: printf '%s' "$JWT_SECRET" | pnpm wrangler secret put jwt_secret --name "$NAME" -c wrangler-action.toml
 
       - name: ♻️ 初始化数据库 / Initialize database
         run: |
