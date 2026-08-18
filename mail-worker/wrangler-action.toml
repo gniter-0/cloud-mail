@@ -7,6 +7,7 @@ enabled = true
 
 [[routes]]
 pattern = "${CUSTOM_DOMAIN}/*"
+zone_name = "52kf.com"
 
 [[d1_databases]]
 binding = "db"
